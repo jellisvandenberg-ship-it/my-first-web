@@ -8,5 +8,10 @@ const games = [
     name: "SNAKE",
     file: "snake.html",
     desc: "Classic snake"
+  },
+  {
+    name: "BREAKOUT",
+    file: "breakout.html",
+    desc: "Break all the bricks!"
   }
 ];
