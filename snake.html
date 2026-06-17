@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snake - CNEFX Game Hub</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial;
+    background: radial-gradient(circle at top, #0f172a, #000);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  /* 🏠 HOME BUTTON */
+  .home-btn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    background: #1c1c1c;
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    border: 1px solid #333;
+    transition: 0.2s;
+    z-index: 9999;
+  }
+
+  .home-btn:hover {
+    background: #2a2a2a;
+    transform: scale(1.05);
+  }
+
+  h1 {
+    margin-top: 60px;
+    margin-bottom: 5px;
+  }
+
+  .score {
+    opacity: 0.8;
+    margin-bottom: 15px;
+  }
+
+  canvas {
+    background: #000;
+    border: 2px solid #333;
+    box-shadow: 0 0 25px rgba(0,255,136,0.1);
+  }
+
+  .hint {
+    margin-top: 10px;
+    font-size: 12px;
+    opacity: 0.6;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- 🏠 HOME -->
+<a href="index.html" class="home-btn">CNEFX</a>
+
+<h1>SNAKE</h1>
+<div class="score">Score: <span id="score">0</span></div>
+
+<canvas id="game" width="400" height="400"></canvas>
+
+<div class="hint">Arrow keys to move • Eat food • Don’t hit walls</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const box = 20;
+
+let snake = [{x: 9*box, y: 9*box}];
+let direction = "RIGHT";
+
+let food = {
+  x: Math.floor(Math.random()*20)*box,
+  y: Math.floor(Math.random()*20)*box
+};
+
+let score = 0;
+
+document.addEventListener("keydown", dir => {
+  if (dir.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+  else if (dir.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+  else if (dir.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+  else if (dir.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+});
+
+function draw() {
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0,0,400,400);
+
+  // snake
+  for (let i = 0; i < snake.length; i++) {
+    ctx.fillStyle = i === 0 ? "#00ff88" : "#00cc66";
+    ctx.fillRect(snake[i].x, snake[i].y, box, box);
+  }
+
+  // food
+  ctx.fillStyle = "#ff4d4d";
+  ctx.fillRect(food.x, food.y, box, box);
+
+  let headX = snake[0].x;
+  let headY = snake[0].y;
+
+  if (direction === "LEFT") headX -= box;
+  if (direction === "RIGHT") headX += box;
+  if (direction === "UP") headY -= box;
+  if (direction === "DOWN") headY += box;
+
+  // eat food
+  if (headX === food.x && headY === food.y) {
+    score++;
+    document.getElementById("score").innerText = score;
+
+    food = {
+      x: Math.floor(Math.random()*20)*box,
+      y: Math.floor(Math.random()*20)*box
+    };
+  } else {
+    snake.pop();
+  }
+
+  let newHead = {x: headX, y: headY};
+
+  // collision
+  if (
+    headX < 0 || headY < 0 ||
+    headX >= 400 || headY >= 400 ||
+    snake.some(s => s.x === headX && s.y === headY)
+  ) {
+    clearInterval(game);
+    alert("Game Over! Score: " + score);
+    location.reload();
+  }
+
+  snake.unshift(newHead);
+}
+
+let game = setInterval(draw, 120);
+</script>
+
+</body>
+</html>
