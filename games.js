@@ -31,7 +31,7 @@ const games = [
   },
   {
     name: "MOTO X3M",
-    file: "moto-x3m.html",
+    file: "motox3m.html",
     desc: "Bike stunt racing madness!"
   }
 ];
