@@ -1,144 +1,131 @@
 <script src="games.js"></script>
 
 <script>
-/* =========================
-   👤 USER SYSTEM (SAFE + CLEAN)
-========================= */
-const userData = localStorage.getItem("user");
-let user = null;
+window.addEventListener("DOMContentLoaded", () => {
 
-try {
-  user = userData ? JSON.parse(userData) : null;
-} catch (e) {
-  console.warn("User data corrupted");
-  user = null;
-}
+  try {
 
-const userBox = document.getElementById("userBox");
-const accBtn = document.getElementById("accountBtn");
+    /* =========================
+       👤 USER SYSTEM
+    ========================= */
+    let user = null;
 
-function initUser() {
-  if (!user) {
-    userBox.innerHTML = `<span>Not logged in</span>`;
-    accBtn.style.display = "none";
-    return;
+    try {
+      const raw = localStorage.getItem("user");
+      user = raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      user = null;
+    }
+
+    const userBox = document.getElementById("userBox");
+    const accBtn = document.getElementById("accountBtn");
+
+    if (userBox) {
+      if (user) {
+        userBox.innerHTML = `
+          <img src="${user.photo || 'https://via.placeholder.com/35'}">
+          <span>Welcome, ${user.name || "Player"}</span>
+        `;
+      } else {
+        userBox.innerHTML = `<span>Not logged in</span>`;
+      }
+    }
+
+    if (accBtn) {
+      if (user) {
+        accBtn.style.display = "block";
+        accBtn.onclick = () => {
+          window.location.href = "profile.html";
+        };
+      } else {
+        accBtn.style.display = "none";
+      }
+    }
+
+    /* =========================
+       🎮 CHECK GAMES
+    ========================= */
+    if (!Array.isArray(window.games)) {
+      console.warn("games.js missing or broken");
+      return;
+    }
+
+    const grid = document.getElementById("gameGrid");
+    const searchInput = document.getElementById("searchInput");
+
+    function randomSize() {
+      const r = Math.random();
+      if (r < 0.15) return "large";
+      if (r < 0.45) return "medium";
+      return "small";
+    }
+
+    function render(list) {
+      if (!grid) return;
+
+      grid.innerHTML = "";
+
+      list.slice(0, 20).forEach(game => {
+        const a = document.createElement("a");
+        a.href = game.file;
+
+        const card = document.createElement("div");
+        card.className = `card ${randomSize()}`;
+
+        card.innerHTML = `
+          <h3>${game.name}</h3>
+          <p>${game.desc}</p>
+        `;
+
+        a.appendChild(card);
+        grid.appendChild(a);
+      });
+    }
+
+    render([...games].sort(() => Math.random() - 0.5));
+
+    /* =========================
+       🔍 SEARCH
+    ========================= */
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        const v = e.target.value.toLowerCase();
+
+        render(
+          games.filter(g =>
+            g.name.toLowerCase().includes(v) ||
+            g.desc.toLowerCase().includes(v)
+          )
+        );
+      });
+    }
+
+    /* =========================
+       🔥 FEATURED GAME
+    ========================= */
+    const title = document.getElementById("featuredTitle");
+    const desc = document.getElementById("featuredDesc");
+    const btn = document.getElementById("featuredBtn");
+
+    if (Array.isArray(games) && games.length > 0 && title && desc && btn) {
+
+      const now = new Date();
+      const start = new Date(now.getFullYear(), 0, 1);
+      const week = Math.floor((now - start) / 604800000);
+
+      const featured = games[week % games.length];
+
+      title.textContent = "🔥 Featured: " + featured.name;
+      desc.textContent = featured.desc;
+
+      btn.onclick = () => {
+        window.location.href = featured.file;
+      };
+    }
+
+  } catch (err) {
+    console.error("Script crashed but was stopped safely:", err);
   }
 
-  userBox.innerHTML = `
-    <img src="${user.photo || 'https://via.placeholder.com/35'}">
-    <span>Welcome, ${user.name || "Player"}</span>
-  `;
-
-  accBtn.style.display = "block";
-
-  accBtn.onclick = () => {
-    window.location.href = "profile.html";
-  };
-}
-
-/* =========================
-   🔥 FEATURED GAME
-========================= */
-function getWeek() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  return Math.floor((now - start) / 604800000);
-}
-
-function initFeatured() {
-  if (!Array.isArray(games) || games.length === 0) return;
-
-  const featured = games[getWeek() % games.length];
-
-  const title = document.getElementById("featuredTitle");
-  const desc = document.getElementById("featuredDesc");
-  const btn = document.getElementById("featuredBtn");
-
-  if (!title || !desc || !btn) return;
-
-  title.textContent = "🔥 Featured: " + featured.name;
-  desc.textContent = featured.desc;
-
-  btn.onclick = () => {
-    window.location.href = featured.file;
-  };
-}
-
-/* =========================
-   🎮 GRID SYSTEM
-========================= */
-const grid = document.getElementById("gameGrid");
-const searchInput = document.getElementById("searchInput");
-
-function randomSize() {
-  const r = Math.random();
-  if (r < 0.15) return "large";
-  if (r < 0.45) return "medium";
-  return "small";
-}
-
-function renderGames(list) {
-  if (!Array.isArray(list) || !grid) return;
-
-  grid.innerHTML = "";
-
-  const fragment = document.createDocumentFragment();
-
-  list.slice(0, 20).forEach(game => {
-    const a = document.createElement("a");
-    a.href = game.file;
-
-    const card = document.createElement("div");
-    card.className = `card ${randomSize()}`;
-
-    const title = document.createElement("h3");
-    title.textContent = game.name;
-
-    const desc = document.createElement("p");
-    desc.textContent = game.desc;
-
-    card.appendChild(title);
-    card.appendChild(desc);
-    a.appendChild(card);
-    fragment.appendChild(a);
-  });
-
-  grid.appendChild(fragment);
-}
-
-/* =========================
-   🔍 SEARCH SYSTEM
-========================= */
-function initSearch() {
-  if (!searchInput) return;
-
-  searchInput.addEventListener("input", (e) => {
-    const v = e.target.value.toLowerCase();
-
-    const filtered = games.filter(g =>
-      g.name.toLowerCase().includes(v) ||
-      g.desc.toLowerCase().includes(v)
-    );
-
-    renderGames(filtered);
-  });
-}
-
-/* =========================
-   🎲 INIT APP
-========================= */
-function init() {
-  initUser();
-  initFeatured();
-  initSearch();
-
-  if (Array.isArray(games)) {
-    const shuffled = [...games].sort(() => Math.random() - 0.5);
-    renderGames(shuffled);
-  } else {
-    console.warn("games.js not loaded or invalid");
-  }
-}
-
-init();
+});
 </script>
