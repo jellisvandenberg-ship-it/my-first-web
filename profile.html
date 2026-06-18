@@ -13,6 +13,19 @@
     padding: 50px;
   }
 
+  /* 🏠 TOP BUTTON */
+  .home-btn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: white;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
   .card {
     background: white;
     padding: 20px;
@@ -20,6 +33,7 @@
     display: inline-block;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     min-width: 300px;
+    margin-top: 40px;
   }
 
   img {
@@ -38,10 +52,18 @@
     color: white;
     font-weight: bold;
   }
+
+  .home-link {
+    background: #00c853;
+    margin-right: 10px;
+  }
 </style>
 </head>
 
 <body>
+
+<!-- 🏠 HOME BUTTON -->
+<button class="home-btn" onclick="goHome()">🏠 Home</button>
 
 <h1>My Account</h1>
 
@@ -50,6 +72,10 @@
 </div>
 
 <script>
+function goHome() {
+  window.location.href = "index.html";
+}
+
 const user = JSON.parse(localStorage.getItem("user"));
 
 if (!user) {
@@ -60,6 +86,7 @@ if (!user) {
     <h2>${user.name}</h2>
     <p>${user.email || "No email stored"}</p>
 
+    <button class="home-link" onclick="goHome()">Go to Home</button>
     <button onclick="logout()">Logout</button>
   `;
 }
