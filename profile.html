@@ -13,7 +13,7 @@
     padding: 50px;
   }
 
-  /* 🏠 TOP BUTTON */
+  /* 🏠 HOME BUTTON */
   .home-btn {
     position: fixed;
     top: 15px;
@@ -26,13 +26,14 @@
     font-weight: bold;
   }
 
+  /* CARD */
   .card {
     background: white;
     padding: 20px;
     border-radius: 16px;
     display: inline-block;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    min-width: 300px;
+    min-width: 320px;
     margin-top: 40px;
   }
 
@@ -43,33 +44,63 @@
   }
 
   button {
-    margin-top: 15px;
+    margin-top: 10px;
     padding: 10px 14px;
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    background: #ff4d4d;
-    color: white;
     font-weight: bold;
   }
 
-  .home-link {
+  .logout {
+    background: #ff4d4d;
+    color: white;
+  }
+
+  .tab-bar {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .tab {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    background: white;
+  }
+
+  .tab.active {
     background: #00c853;
-    margin-right: 10px;
+    color: white;
+  }
+
+  .content {
+    margin-top: 20px;
+    text-align: left;
+  }
+
+  .item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .small {
+    opacity: 0.7;
+    font-size: 13px;
   }
 </style>
 </head>
 
 <body>
 
-<!-- 🏠 HOME BUTTON -->
 <button class="home-btn" onclick="goHome()">🏠 Home</button>
 
 <h1>My Account</h1>
 
-<div class="card" id="profileCard">
-  Loading...
-</div>
+<div class="card" id="profileCard">Loading...</div>
 
 <script>
 function goHome() {
@@ -80,21 +111,112 @@ const user = JSON.parse(localStorage.getItem("user"));
 
 if (!user) {
   window.location.href = "login.html";
-} else {
-  document.getElementById("profileCard").innerHTML = `
-    <img src="${user.photo}">
-    <h2>${user.name}</h2>
-    <p>${user.email || "No email stored"}</p>
+}
 
-    <button class="home-link" onclick="goHome()">Go to Home</button>
-    <button onclick="logout()">Logout</button>
-  `;
+/* defaults */
+let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+let recent = JSON.parse(localStorage.getItem("recent") || "[]");
+
+let tab = "profile";
+
+/* render */
+function render() {
+  const card = document.getElementById("profileCard");
+
+  if (tab === "profile") {
+    card.innerHTML = `
+      <img src="${user.photo}">
+      <h2>${user.name}</h2>
+      <p>${user.email || "No email stored"}</p>
+
+      <button class="logout" onclick="logout()">Logout</button>
+
+      <div class="tab-bar">
+        <div class="tab active" onclick="switchTab('profile')">Profile</div>
+        <div class="tab" onclick="switchTab('favorites')">Favorites</div>
+        <div class="tab" onclick="switchTab('recent')">Recently Played</div>
+      </div>
+    `;
+  }
+
+  if (tab === "favorites") {
+    card.innerHTML = `
+      <h2>⭐ Favorites</h2>
+
+      <div class="tab-bar">
+        <div class="tab" onclick="switchTab('profile')">Profile</div>
+        <div class="tab active" onclick="switchTab('favorites')">Favorites</div>
+        <div class="tab" onclick="switchTab('recent')">Recently Played</div>
+      </div>
+
+      <div class="content">
+        ${
+          favorites.length
+            ? favorites.map(f => `
+                <div class="item">
+                  <b>${f.name}</b>
+                  <div class="small">${f.desc || ""}</div>
+                </div>
+              `).join("")
+            : "<p>No favorites yet ⭐</p>"
+        }
+      </div>
+    `;
+  }
+
+  if (tab === "recent") {
+    card.innerHTML = `
+      <h2>🕒 Recently Played</h2>
+
+      <div class="tab-bar">
+        <div class="tab" onclick="switchTab('profile')">Profile</div>
+        <div class="tab" onclick="switchTab('favorites')">Favorites</div>
+        <div class="tab active" onclick="switchTab('recent')">Recent</div>
+      </div>
+
+      <div class="content">
+        ${
+          recent.length
+            ? recent.map(r => `
+                <div class="item">
+                  <b>${r.name}</b>
+                  <div class="small">${r.time}</div>
+                </div>
+              `).join("")
+            : "<p>No recent games yet 🕒</p>"
+        }
+      </div>
+    `;
+  }
+}
+
+function switchTab(t) {
+  tab = t;
+  render();
 }
 
 function logout() {
   localStorage.removeItem("user");
   window.location.href = "login.html";
 }
+
+/* fake helpers (we'll connect later) */
+function addFavorite(game) {
+  favorites.push(game);
+  localStorage.setItem("favorites", JSON.stringify(favorites));
+}
+
+function addRecent(gameName) {
+  recent.unshift({
+    name: gameName,
+    time: new Date().toLocaleString()
+  });
+
+  recent = recent.slice(0, 10);
+  localStorage.setItem("recent", JSON.stringify(recent));
+}
+
+render();
 </script>
 
 </body>
