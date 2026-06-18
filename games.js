@@ -1,4 +1,4 @@
-const games = [
+window.games = [
   {
     name: "TETRIS",
     file: "tetris.html",
